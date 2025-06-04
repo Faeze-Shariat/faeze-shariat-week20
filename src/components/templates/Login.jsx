@@ -1,5 +1,6 @@
 import React , {useReducer} from 'react'
 import { useMutation } from '@tanstack/react-query';
+
 import api from '../../services/axiosConfing';
 
 
@@ -31,11 +32,17 @@ function reducer(state , action){
 
 
 
-function Login() {
+function Login({onSuccess}) {
   const [state, dispatch] = useReducer(reducer, initialState);
   
   const handleSubmit = async (e) => {
       e.preventDefault();
+
+      console.log('Submitting login data:', {
+        username: state.username,
+        password: state.password,
+      });
+
       if(!state.username || !state.password) {
         dispatch({type: 'SetError' , payload: 'لطفا همه فیلد هارو پر کنید'});
         return;
@@ -52,11 +59,13 @@ function Login() {
 
     const mutation = useMutation({
       mutationFn: async (formData) => {
-        const response = await axios.post('/auth/login', formData);
+        const response = await api.post('/auth/login', formData);
+        console.log('Server response:', response.data);
         return response.data;
-      },
+      },      
       onSuccess: (data) => {
-        console.log('ارسال موفق')
+        localStorage.setItem('token', data.token);
+        onSuccess()
       },
       onError: (error) => {
         dispatch({type: 'SetError' , payload: 'نام کاربری یا رمز ورودی اشتباه است!'})
